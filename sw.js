@@ -1,5 +1,5 @@
 'use strict';
-const CACHE='naka-pass-v1';
+const CACHE='naka-pass-v2';
 const ASSETS=['./','./index.html','./style.css','./app.js','./manifest.json','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable-512.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('naka-pass-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())));
