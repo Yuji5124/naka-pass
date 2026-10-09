@@ -36,8 +36,8 @@ function renderStores(){
   if(['lawson','matsukiyo'].includes(store.id)&&settings.payment!=='いつもの決済') rows.push(['払う',settings.payment]);
   const dl=element('dl');for(const [label,value] of rows){const row=element('div');row.append(element('dt','',label),element('dd','',value));dl.append(row);}article.append(dl);
   if(store.id==='mybasket')article.append(element('p','point-note','WAON POINT'));
-  const link=element('a','open-link',`${store.app}を開く ↗`);link.href=settings.url;link.target='_blank';link.rel='noopener noreferrer';link.setAttribute('aria-label',`${store.name}：${store.app}を開く`);article.append(link);
-  article.append(element('p','link-caption',settings.url.startsWith('https:')?'公式Webページへ':'設定したアプリのリンクへ'));list.append(article);
+  const link=element('a','open-link',`${store.app}を開く ↗`);link.href=settings.url;link.target=settings.url.startsWith('https:')?'_blank':'_self';link.rel='noopener noreferrer';link.setAttribute('aria-label',`${store.name}：${store.app}を開く`);article.append(link);
+  article.append(element('p','link-caption',settings.url.startsWith('https:')?'公式Webページへ':(settings.url.startsWith('shortcuts:')?'iPhoneのショートカットを実行':'設定したアプリのリンクへ')));list.append(article);
  }
 }
 function renderCards(){
@@ -49,7 +49,13 @@ function renderCards(){
 function renderSettings(){
  const list=document.querySelector('#settings-list');
  for(const store of stores){const settings=state.stores[store.id]||store;const box=element('fieldset','setting');const legend=element('legend','',store.name);box.append(legend);
-  for(const [key,title] of [['payment','支払い方法'],['url','公式アプリ起動URL / 公式Web URL']]){const label=element('label','',title);const input=element('input');input.type='text';input.name=`${store.id}-${key}`;input.value=settings[key];input.required=true;input.maxLength=key==='payment'?60:2048;if(key==='url'){input.inputMode='url';input.autocapitalize='off';input.spellcheck=false;}label.append(input);box.append(label);}list.append(box);
+  for(const [key,title] of [['payment','支払い方法'],['url','公式アプリ起動URL / 公式Web URL']]){const label=element('label','',title);const input=element('input');input.type='text';input.name=`${store.id}-${key}`;input.value=settings[key];input.required=true;input.maxLength=key==='payment'?60:2048;if(key==='url'){input.inputMode='url';input.autocapitalize='off';input.spellcheck=false;}label.append(input);box.append(label);}
+  const shortcutName=`NAKA ${store.app}`;
+  const help=element('p','shortcut-help',`ショートカット名：${shortcutName}`);
+  const shortcut=element('button','shortcut-button','iPhoneのショートカットと連動');shortcut.type='button';
+  shortcut.addEventListener('click',()=>{const input=box.querySelector(`[name="${store.id}-url"]`);input.value=`shortcuts://run-shortcut?name=${encodeURIComponent(shortcutName)}`;input.setCustomValidity('');message(`「${shortcutName}」をiPhoneで作成してから、下の「設定を保存」を押してください。`);help.textContent=`連動URLを入力しました。ショートカット名：${shortcutName}（設定を保存してください）`;});
+  const fallback=element('button','shortcut-button','公式Webに戻す');fallback.type='button';fallback.addEventListener('click',()=>{const input=box.querySelector(`[name="${store.id}-url"]`);input.value=store.url;input.setCustomValidity('');help.textContent='公式WebのURLを入力しました。設定を保存してください。';});
+  box.append(help,shortcut,fallback);list.append(box);
  }
 }
 document.querySelector('#settings-form').addEventListener('submit',event=>{
